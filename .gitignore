@@ -13,6 +13,8 @@ logs
 results
 tmp
 
+backend/target
+
 # Coverage reports
 coverage
 
