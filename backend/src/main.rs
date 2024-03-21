@@ -1,7 +1,9 @@
-use std::fs::File;
+mod config;
+mod steam;
 
-fn main() {
-    File::create("./text.txt").unwrap();
+pub type Error = Box<dyn std::error::Error>;
 
-    println!("Hello, world!");
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    Ok(())
 }
