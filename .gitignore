@@ -15,6 +15,9 @@ tmp
 
 backend/target
 
+# Used for testing
+bakend/config.json
+
 # Coverage reports
 coverage
 

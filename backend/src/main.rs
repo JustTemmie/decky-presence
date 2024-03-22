@@ -1,19 +1,20 @@
 use config::Config;
-
 mod config;
 mod steam;
+
+pub mod recursion {
+    pub type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
+}
 
 pub type Error = Box<dyn std::error::Error>;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let config = Config::load().await?;
+    let config = Config::try_load().await;
 
-    config
-        .artwork
-        .steam_grid_db
-        .query("Beaver Clicker")
-        .await?;
+    loop {
+        config.steam.currently_playing().await?;
 
-    Ok(())
+        tokio::time::sleep(tokio::time::Duration::from_secs(3)).await;
+    }
 }

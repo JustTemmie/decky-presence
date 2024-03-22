@@ -9,13 +9,25 @@ impl SteamGridDb {
         Ok(Client::new(self.api_key.clone()))
     }
 
-    pub async fn query(&self, game: &str) -> Result<Option<&Image>, Error> {
+    pub async fn query(&self, game: &str) -> Result<Option<Image>, Error> {
         let client = self.client().await?;
         let games = client.search(game).await?;
         let first_game = games.iter().next();
-        Ok(first_game.and_then(|first_game| async {
-            let images = client.get_images_for_id(first_game.id, &Grid(None)).await?;
-            images.iter().next()
-        }))
+
+        match first_game {
+            Some(game) => Ok({
+                let images = client.get_images_for_id(game.id, &Grid(None)).await?;
+
+                let image = images.iter().next();
+
+                match image {
+                    Some(image) => {
+                        Some(image.to_owned())
+                    },
+                    None => None,
+                }
+            }),
+            None => Ok(None),
+        }
     }
 }
