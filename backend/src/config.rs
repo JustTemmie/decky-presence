@@ -1,24 +1,119 @@
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 pub struct Config {
     pub steam: Steam,
-    pub discord: Discord,
-    pub steam_grid_db: SteamGridDb,
+    pub application_id: String,
+    pub artwork: Artwork,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Steam {}
 
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct Discord {}
+#[derive(Debug, serde::Serialize)]
+pub struct Artwork {
+    pub steam_grid_db: SteamGridDb,
+    pub steam_store_fallback: bool,
+}
 
-#[derive(serde::Deserialize, serde::Serialize)]
-pub struct SteamGridDb {}
+#[derive(Debug, serde::Serialize)]
+pub struct SteamGridDb {
+    pub enabled: bool,
+    pub api_key: String,
+}
 
 impl Config {
-    async fn load() -> Result<Config, crate::Error> {
+    pub async fn load() -> Result<Config, crate::Error> {
         let file = tokio::fs::read_to_string("./config.json").await?;
-        let config: Config = serde_json::from_str(&file)?;
+        let config_builder: ConfigBuilder = serde_json::from_str(&file)?;
 
+        let config = tokio::task::spawn_blocking(|| {config_builder.build()}).await?;
+
+        println!("{:#?}", config);
         Ok(config)
+    }
+}
+
+#[derive(serde::Deserialize)]
+struct ConfigBuilder {
+    steam: Steam,
+    application_id: Option<String>,
+    artwork: Option<ArtworkBuilder>,
+}
+
+#[derive(serde::Deserialize)]
+pub struct ArtworkBuilder {
+    steam_grid_db: Option<SteamGridDbBuilder>,
+    steam_store_fallback: Option<bool>,
+}
+
+#[derive(serde::Deserialize)]
+struct SteamGridDbBuilder {
+    enabled: Option<bool>,
+    api_key: Option<String>,
+}
+
+impl ConfigBuilder {
+    fn build(mut self) -> Config {
+        if self.application_id.is_none() {
+            self.application_id = Some(String::from("869994714093465680"));
+        }
+        
+        let artwork = if let Some(mut artwork) = self.artwork {
+            if let Some(mut steam_grid_db) = artwork.steam_grid_db {
+                if steam_grid_db.enabled.is_none() {
+                    steam_grid_db.enabled = Some(false);
+                }
+
+                if steam_grid_db.api_key.is_none() {
+                    steam_grid_db.api_key = Some(String::new())
+                }
+
+                artwork.steam_grid_db = Some(steam_grid_db);
+            } else {
+                artwork.steam_grid_db = {
+                    Some(SteamGridDbBuilder {
+                        enabled: Some(false),
+                        api_key: Some(String::new()),
+                    })
+                }
+            }
+
+            if artwork.steam_store_fallback.is_none() {
+                artwork.steam_store_fallback = Some(false);
+            }
+
+            artwork
+        } else {
+            ArtworkBuilder {
+                steam_grid_db: Some(SteamGridDbBuilder {
+                    enabled: Some(false),
+                    api_key: Some(String::new()),
+                }),
+                steam_store_fallback: Some(false),
+            }
+        };
+
+        self.artwork = Some(artwork);
+
+        Config {
+            steam: self.steam,
+            application_id: self.application_id.unwrap(),
+            artwork: Artwork {
+                steam_grid_db: SteamGridDb {
+                    enabled: self.artwork().steam_grid_db().enabled.unwrap(),
+                    api_key: self.artwork().steam_grid_db().api_key.unwrap(),
+                },
+                steam_store_fallback: artwork.steam_store_fallback.unwrap(),
+            }
+        }
+    }
+
+    fn artwork(&self) -> ArtworkBuilder {
+        self.artwork.unwrap()
+    }
+}
+
+impl ArtworkBuilder {
+    fn steam_grid_db(&self) -> SteamGridDbBuilder {
+        self.steam_grid_db.unwrap()
     }
 }
