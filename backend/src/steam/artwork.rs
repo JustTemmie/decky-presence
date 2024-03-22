@@ -1,4 +1,4 @@
-use crate::config::SteamGridDb;
+use crate::config::{Artwork, SteamGridDb};
 use crate::Error;
 use steamgriddb_api::images::Image;
 use steamgriddb_api::Client;
@@ -29,5 +29,12 @@ impl SteamGridDb {
             }),
             None => Ok(None),
         }
+    }
+}
+
+impl Artwork {
+    pub async fn get_image_from_store_page(&self, app_id: u64) {
+
+        reqwest::get(format!("https://store.steampowered.com/api/appdetails?appids={}", app_id)).await;
     }
 }

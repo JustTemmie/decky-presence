@@ -8,10 +8,11 @@ pub struct Config {
     pub artwork: Artwork,
 }
 
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Steam {
     pub api_key: String,
+    pub app_id: u64,
     pub user_id: String,
 }
 
@@ -56,9 +57,16 @@ impl Config {
 #[derive(Clone, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ConfigBuilder {
-    steam: Steam,
+    steam: SteamBuilder,
     application_id: Option<String>,
     artwork: Option<ArtworkBuilder>,
+}
+
+#[derive(Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SteamBuilder {
+    pub api_key: String,
+    pub user_id: String,
 }
 
 #[derive(Clone, serde::Deserialize)]
@@ -119,7 +127,11 @@ impl ConfigBuilder {
         self.artwork = Some(artwork);
 
         Config {
-            steam: self.clone().steam,
+            steam: Steam {
+                api_key: self.steam.clone().api_key,
+                app_id: 0,
+                user_id: self.steam.clone().user_id
+            },
             application_id: self.clone().application_id.unwrap(),
             artwork: Artwork {
                 steam_grid_db: SteamGridDb {
