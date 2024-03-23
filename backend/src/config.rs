@@ -89,7 +89,7 @@ impl ConfigBuilder {
         if self.application_id.is_none() {
             self.application_id = Some(String::from("869994714093465680"));
         }
-        
+
         let artwork = if let Some(mut artwork) = self.artwork {
             if let Some(mut steam_grid_db) = artwork.steam_grid_db {
                 if steam_grid_db.enabled.is_none() {
@@ -131,7 +131,7 @@ impl ConfigBuilder {
             steam: Steam {
                 api_key: self.steam.clone().api_key,
                 app_id: 0,
-                user_id: self.steam.clone().user_id
+                user_id: self.steam.clone().user_id,
             },
             application_id: self.clone().application_id.unwrap(),
             artwork: Artwork {
@@ -141,7 +141,7 @@ impl ConfigBuilder {
                 },
                 steam_store_fallback: self.artwork().steam_store_fallback.unwrap(),
                 image_url: String::new(),
-            }
+            },
         }
     }
 

@@ -1,7 +1,10 @@
 use config::Config;
 mod config;
 mod steam;
-use discord_rich_presence::{activity::{Activity, Assets}, DiscordIpc, DiscordIpcClient};
+use discord_rich_presence::{
+    activity::{Activity, Assets},
+    DiscordIpc, DiscordIpcClient,
+};
 
 pub mod recursion {
     pub type Error = Box<dyn std::error::Error + Send + Sync + 'static>;
@@ -32,15 +35,19 @@ async fn main() -> Result<(), Error> {
             println!("{}", config.steam.app_id);
 
             if config.artwork.steam_grid_db.enabled {
+                config.artwork.sgdb_query(&currently_playing).await?;
+            } else if config.artwork.steam_store_fallback && config.steam.app_id != 0 {
                 config
                     .artwork
-                    .sgdb_query(&currently_playing)
+                    .get_image_from_store_page(config.steam.app_id)
                     .await?;
-            } else if config.artwork.steam_store_fallback && config.steam.app_id != 0 {
-                config.artwork.get_image_from_store_page(config.steam.app_id).await?;
             }
 
-            client.set_activity(Activity::new().details(&currently_playing).assets(Assets::new().large_image(&config.artwork.image_url)))?;
+            client.set_activity(
+                Activity::new()
+                    .details(&currently_playing)
+                    .assets(Assets::new().large_image(&config.artwork.image_url)),
+            )?;
 
             last_currently_playing = currently_playing;
         } else {
