@@ -2,7 +2,7 @@ use crate::config::{Artwork, SteamGridDb};
 use crate::Error;
 use serde_json::Value;
 use steamgriddb_api::Client;
-use steamgriddb_api::QueryType::Grid;
+use steamgriddb_api::QueryType::Icon;
 
 impl SteamGridDb {
     async fn client(&self) -> Result<Client, Error> {
@@ -19,6 +19,7 @@ impl Artwork {
         .await?
         .json()
         .await?;
+
         self.image_url = response[app_id.to_string()]["data"]["header_image"]
             .as_str()
             .unwrap()
@@ -35,7 +36,7 @@ impl Artwork {
         match first_game {
             Some(game) => {
                 {
-                    let images = client.get_images_for_id(game.id, &Grid(None)).await?;
+                    let images = client.get_images_for_id(game.id, &Icon(None)).await?;
 
                     let image = images.first();
 
