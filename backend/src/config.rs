@@ -21,6 +21,7 @@ pub struct Steam {
 pub struct Artwork {
     pub steam_grid_db: SteamGridDb,
     pub steam_store_fallback: bool,
+    pub image_url: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -139,6 +140,7 @@ impl ConfigBuilder {
                     api_key: self.artwork().steam_grid_db().api_key.unwrap(),
                 },
                 steam_store_fallback: self.artwork().steam_store_fallback.unwrap(),
+                image_url: String::new(),
             }
         }
     }

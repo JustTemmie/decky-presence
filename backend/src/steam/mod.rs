@@ -29,6 +29,6 @@ impl Steam {
             }
         }
 
-        return Ok(0);
+        Ok(0)
     }
 }

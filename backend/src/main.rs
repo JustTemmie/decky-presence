@@ -22,7 +22,7 @@ async fn main() -> Result<(), Error> {
     loop {
         let currently_playing = config.steam.currently_playing().await?;
 
-        if currently_playing != "" {
+        if !currently_playing.is_empty() {
             if last_currently_playing != currently_playing {
                 config.steam.app_id = config.steam.get_game_id(&currently_playing).await?;
             }
@@ -34,19 +34,19 @@ async fn main() -> Result<(), Error> {
             if config.artwork.steam_grid_db.enabled {
                 config
                     .artwork
-                    .steam_grid_db
-                    .query(&currently_playing)
+                    .sgdb_query(&currently_playing)
                     .await?;
             } else if config.artwork.steam_store_fallback && config.steam.app_id != 0 {
-                config.artwork.get_image_from_store_page(config.steam.app_id).await;
+                config.artwork.get_image_from_store_page(config.steam.app_id).await?;
             }
 
-            client.set_activity(Activity::new().details(&currently_playing).assets(Assets::new()))?;
+            client.set_activity(Activity::new().details(&currently_playing).assets(Assets::new().large_image(&config.artwork.image_url)))?;
 
             last_currently_playing = currently_playing;
         } else {
             last_currently_playing = String::new();
-            config.steam.app_id = 0
+            config.steam.app_id = 0;
+            config.artwork.image_url = String::new();
         }
 
         tokio::time::sleep(tokio::time::Duration::from_secs(10)).await;
