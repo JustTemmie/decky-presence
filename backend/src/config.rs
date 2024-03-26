@@ -21,6 +21,7 @@ pub struct Steam {
 pub struct Artwork {
     pub steam_grid_db: SteamGridDb,
     pub steam_store_fallback: bool,
+    pub default_image: String,
     pub image_url: String,
 }
 
@@ -75,6 +76,7 @@ struct SteamBuilder {
 pub struct ArtworkBuilder {
     steam_grid_db: Option<SteamGridDbBuilder>,
     steam_store_fallback: Option<bool>,
+    default_image: Option<String>,
 }
 
 #[derive(Clone, serde::Deserialize)]
@@ -114,6 +116,10 @@ impl ConfigBuilder {
                 artwork.steam_store_fallback = Some(false);
             }
 
+            if artwork.default_image.is_none() {
+                artwork.default_image = Some(String::from("https://raw.githubusercontent.com/JustTemmie/steam-presence/main/readmeimages/defaulticon.png"));
+            }
+
             artwork
         } else {
             ArtworkBuilder {
@@ -122,6 +128,7 @@ impl ConfigBuilder {
                     api_key: Some(String::new()),
                 }),
                 steam_store_fallback: Some(false),
+                default_image: Some(String::from("https://raw.githubusercontent.com/JustTemmie/steam-presence/main/readmeimages/defaulticon.png")),
             }
         };
 
@@ -140,6 +147,7 @@ impl ConfigBuilder {
                     api_key: self.artwork().steam_grid_db().api_key.unwrap(),
                 },
                 steam_store_fallback: self.artwork().steam_store_fallback.unwrap(),
+                default_image: self.artwork().default_image.unwrap(),
                 image_url: String::new(),
             },
         }

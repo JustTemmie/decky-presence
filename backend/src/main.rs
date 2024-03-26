@@ -48,14 +48,18 @@ async fn main() -> Result<(), Error> {
             }
 
             if config.artwork.steam_grid_db.enabled {
-                config.artwork.sgdb_query(&currently_playing).await?;
+                config.artwork
+                    .sgdb_query(&currently_playing)
+                    .await
+                    .unwrap_or_else(|_| config.artwork.image_url = config.artwork.default_image.clone());
             } else if config.artwork.steam_store_fallback && config.steam.app_id != 0 {
                 config
                     .artwork
                     .get_image_from_store_page(config.steam.app_id)
-                    .await?;
+                    .await
+                    .unwrap_or_else(|_| config.artwork.image_url = config.artwork.default_image.clone());
             } else {
-                config.artwork.image_url = String::from("https://raw.githubusercontent.com/JustTemmie/steam-presence/main/readmeimages/defaulticon.png");
+                config.artwork.image_url = config.artwork.default_image.clone();
             }
 
             client.set_activity(
@@ -69,7 +73,7 @@ async fn main() -> Result<(), Error> {
         } else {
             last_currently_playing = String::new();
             config.steam.app_id = 0;
-            config.artwork.image_url = String::new();
+            config.artwork.image_url = config.artwork.default_image.clone();
             start_time = 0;
         }
 
